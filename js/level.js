@@ -64,15 +64,18 @@ class Level {
     this.addInteractables ();
     this.setCamera();
     this.update();
-
   }
+
   addLevel(){
     scene.scene3D.add(this.level);
     this.level.scale.set(0.005,0.005,0.005);
   }
 
   addInteractables(){
-
+    this.spawneds = [];
+  
+    var carScale = 0.001;
+    var scaler = {x:carScale, y:carScale, z:carScale};
     // all interactables. they are also draggable
     var list = [
       { 
@@ -81,9 +84,9 @@ class Level {
         mesh: "carBlue",
         material: new THREE.MeshBasicMaterial( {map: this.textures[1]}),
         initialposition: { x: 0, y:2, z:2 } , 
-        initialscale: {x :0.005, y:0.005, z: 0.005}, 
+        initialscale: scaler,
         initialrotation: {x: 0, y: 90, z: 0},
-        instantiated: null // SPAWNED MESH
+        instantiated: null // SPAWNED MESH (cloned in this case :)
       },      
       { 
         id: "bluecar2", 
@@ -91,9 +94,9 @@ class Level {
         mesh: "carBlue",
         material: new THREE.MeshBasicMaterial( {map: this.textures[1]}),
         initialposition: { x:4, y:2, z:2 } , 
-        initialscale: {x :0.005, y:0.005, z: 0.005}, 
+        initialscale: scaler, 
         initialrotation: {x: 0, y: 90, z: 0},
-        instantiated: null // SPAWNED MESH
+        instantiated: null // SPAWNED MESH (cloned in this case :)
       },
       { 
         id: "redcar1", 
@@ -101,41 +104,57 @@ class Level {
         mesh: "carRed",
         material: new THREE.MeshBasicMaterial( {map: this.textures[2]}),
         initialposition: { x: 1, y:1, z:0 } , 
-        initialscale: {x :0.005, y:0.005, z: 0.005}, 
+        initialscale: scaler, 
         initialrotation: {x: 0, y: 90, z: 0},
-        instantiated: null // SPAWNED MESH
+        instantiated: null // SPAWNED MESH (cloned in this case :)
       }
     ]
 
+    var colliders = [];
     var length = list.length;
     for (var i=0; i<length; i++) {
-      this.spawnObject (list[i]);
+      colliders.push (this.spawnObject (list[i]));
     }
-  }
 
-  ///degree to radian
-  degToRad (val) {
-    const deg = 57.295779515;
-    return val / deg;
+    Scene.Input.RefreshDragControls (colliders);
   }
-  // create spawned objects list.
 
   spawnObject (obj) {
-    /// load mesh first. (THANK YOU DEVELOPER I HAD NO IDEA ABOUT THREE.JS)
+    var groupObject = new THREE.Group(); // I ALREADY MISSED PARENTS & CHILDRENS IN UNITY.
 
     var mesh = this[obj.mesh].clone ();
-    console.log (mesh);
     obj.instantiated = mesh;
-    scene.scene3D.add(mesh);
-
-    mesh.scale.set(obj.initialscale.x,obj.initialscale.y,obj.initialscale.z);
-    var rotation = new THREE.Vector3 (this.degToRad (obj.initialrotation.x), 
-    this.degToRad (obj.initialrotation.y), 
-    this.degToRad (obj.initialrotation.z) );
     
-    mesh.rotation.setFromVector3(rotation);
-    mesh.position.set (obj.initialposition.x, obj.initialposition.y, obj.initialposition.z);
+    //mesh.callback = function() { console.log( "Clicked on => " + this.name ); }
+    mesh.scale.set(obj.initialscale.x,obj.initialscale.y,obj.initialscale.z);
     this.loadmaterial (mesh, obj.material);
+
+    groupObject.add (mesh);
+
+    // add collider.
+    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+    var collider = new THREE.Mesh( geometry, material );
+    scene.scene3D.add( collider );
+
+    groupObject.add (collider);
+
+    // set transform.
+
+    var rotation = new THREE.Vector3 (THREE.Math.degToRad (obj.initialrotation.x), 
+    THREE.Math.degToRad (obj.initialrotation.y), 
+    THREE.Math.degToRad (obj.initialrotation.z) );
+
+    scene.scene3D.add ( groupObject);
+
+    groupObject.rotation.setFromVector3(rotation);
+    groupObject.position.set (obj.initialposition.x, obj.initialposition.y, obj.initialposition.z);
+
+    console.log (groupObject);
+
+    this.spawneds[obj.id] = groupObject;
+
+    return collider;
   }
 
   buildWater() {

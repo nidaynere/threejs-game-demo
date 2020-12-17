@@ -10,10 +10,13 @@ class Scene extends PIXI.Container {
     this.ambientLight = new THREE.AmbientLight(0xffffff, 5);
     this.scene3D.add(this.ambientLight);
 
-    this.camera = new THREE.PerspectiveCamera(0, 0, 0.1, 1000);
+    this.camera = new THREE.PerspectiveCamera(75, window.innerHeight / window.innerHeight, 0.1, 1000);
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.update();
+
+    /// create input module.
+    Scene.Input = new Input (this.camera);
   }
   buildLevel(){
     this.level = new Level();

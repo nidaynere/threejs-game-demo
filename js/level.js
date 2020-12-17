@@ -69,6 +69,14 @@ class Level {
   addLevel(){
     scene.scene3D.add(this.level);
     this.level.scale.set(0.005,0.005,0.005);
+    
+    // add collider.
+    const geometry = new THREE.BoxGeometry( 10, 0.01, 10 );
+    const material = new THREE.MeshBasicMaterial( {color: 0x00ffff} );
+    var collider = new THREE.Mesh( geometry, material );
+    scene.scene3D.add( collider );
+
+    Scene.Input.SetDraggingZone (collider);
   }
 
   addInteractables(){
@@ -125,7 +133,6 @@ class Level {
     var mesh = this[obj.mesh].clone ();
     obj.instantiated = mesh;
     
-    //mesh.callback = function() { console.log( "Clicked on => " + this.name ); }
     mesh.scale.set(obj.initialscale.x,obj.initialscale.y,obj.initialscale.z);
     this.loadmaterial (mesh, obj.material);
 
@@ -136,6 +143,18 @@ class Level {
     const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
     var collider = new THREE.Mesh( geometry, material );
     scene.scene3D.add( collider );
+
+    // collider events.
+    collider.ondragstart = function() { console.log( "Drag started => " + obj.id ); }
+    collider.ondragend = function() { console.log( "Drag end => " + obj.id ); }
+    collider.ondrag = function(point) { 
+      var position = Scene.Input.RaycastToDraggingZone (point);
+      if (position != null)
+      {
+          groupObject.position.set (position.x, position.y + 1, position.z);
+      }
+    }
+    //
 
     groupObject.add (collider);
 

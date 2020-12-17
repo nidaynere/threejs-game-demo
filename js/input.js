@@ -1,3 +1,6 @@
+/// I used static variables which is not necessary here.
+/// You know why? Because I had no idea. I never used JavaScript like this. 
+/// I was a happy man when I was generating CSS with JS.
 class Input {
     RefreshDragControls (objs) {
         Input.TargetObjects = objs;

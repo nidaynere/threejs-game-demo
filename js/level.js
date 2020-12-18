@@ -74,13 +74,14 @@ class Level {
     const geometry = new THREE.BoxGeometry( 10, 0.01, 10 );
     const material = new THREE.MeshBasicMaterial( {color: 0x00ffff} );
     var collider = new THREE.Mesh( geometry, material );
+    collider.visible = false;
     scene.scene3D.add( collider );
 
     Scene.Input.SetDraggingZone (collider);
   }
 
   addInteractables(){
-    this.spawneds = [];
+    Level.spawneds = [];
   
     var carScale = 0.001;
     var scaler = {x:carScale, y:carScale, z:carScale};
@@ -94,6 +95,7 @@ class Level {
         initialposition: { x: 0, y:2, z:2 } , 
         initialscale: scaler,
         initialrotation: {x: 0, y: 90, z: 0},
+        mergeStep: 0,
         instantiated: null // SPAWNED MESH (cloned in this case :)
       },      
       { 
@@ -104,6 +106,7 @@ class Level {
         initialposition: { x:4, y:2, z:2 } , 
         initialscale: scaler, 
         initialrotation: {x: 0, y: 90, z: 0},
+        mergeStep: 0,
         instantiated: null // SPAWNED MESH (cloned in this case :)
       },
       { 
@@ -114,21 +117,23 @@ class Level {
         initialposition: { x: 1, y:1, z:0 } , 
         initialscale: scaler, 
         initialrotation: {x: 0, y: 90, z: 0},
+        mergeStep: 0,
         instantiated: null // SPAWNED MESH (cloned in this case :)
       }
     ]
 
-    var colliders = [];
+    Level.colliders = [];
     var length = list.length;
     for (var i=0; i<length; i++) {
-      colliders.push (this.spawnObject (list[i]));
+      Level.colliders.push (this.spawnObject (list[i]));
     }
 
-    Scene.Input.RefreshDragControls (colliders);
+    Scene.Input.RefreshDragControls (Level.colliders);
   }
 
   spawnObject (obj) {
-    var groupObject = new THREE.Group(); // I ALREADY MISSED PARENTS & CHILDRENS IN UNITY.
+    var groupObject = new THREE.Group();
+    groupObject.obj = obj; // assign our spawn object to group object.
 
     var mesh = this[obj.mesh].clone ();
     obj.instantiated = mesh;
@@ -140,13 +145,47 @@ class Level {
 
     // add collider.
     const geometry = new THREE.BoxGeometry( 1, 1, 1 );
-    const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+    const material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
     var collider = new THREE.Mesh( geometry, material );
-    scene.scene3D.add( collider );
+    collider.visible = false;
+    //
 
     // collider events.
-    collider.ondragstart = function() { console.log( "Drag started => " + obj.id ); }
-    collider.ondragend = function() { console.log( "Drag end => " + obj.id ); }
+    collider.ondragstart = function() { 
+      console.log( "Drag started => " + obj.id ); 
+    }
+
+    collider.ondragend = function() { 
+      console.log( "Drag end => " + obj.id ); 
+
+      // find possible match?
+      var match = Level.spawneds.find (x => 
+        obj.id != x.obj.id &&
+        obj.mergeStep == x.obj.mergeStep &&
+        (obj.color == x.obj.color || obj.mergeStep == 1) &&
+        groupObject.position.distanceTo (x.position) <= 3); // [KNOWNISSUE] => 1 can be optional
+
+        if (match != null)
+        {
+            // destroy the match from the scene.
+            scene.scene3D.remove (match);
+            
+            var index = Level.spawneds.findIndex (x=>x.obj.id == match.obj.id);
+            if (index > -1){
+              Level.spawneds.splice (index, 1);
+            }
+
+            // remove from colliders.
+            index = Level.colliders.findIndex (x=> x == match.collider);
+            if (index > -1){
+              Level.colliders.splice (index, 1);
+              
+              // collider list updated. update input drag controls.
+              Scene.Input.RefreshDragControls (Level.colliders);
+            }
+        }
+    }
+
     collider.ondrag = function(point) { 
       var position = Scene.Input.RaycastToDraggingZone (point);
       if (position != null)
@@ -156,22 +195,25 @@ class Level {
     }
     //
 
+    groupObject.collider = collider;
     groupObject.add (collider);
 
     // set transform.
-
     var rotation = new THREE.Vector3 (THREE.Math.degToRad (obj.initialrotation.x), 
     THREE.Math.degToRad (obj.initialrotation.y), 
     THREE.Math.degToRad (obj.initialrotation.z) );
-
-    scene.scene3D.add ( groupObject);
-
     groupObject.rotation.setFromVector3(rotation);
     groupObject.position.set (obj.initialposition.x, obj.initialposition.y, obj.initialposition.z);
+    //
+    
+    Level.spawneds.push (groupObject);
+    scene.scene3D.add ( groupObject);
 
-    console.log (groupObject);
-
-    this.spawneds[obj.id] = groupObject;
+    // tween the group scale. (spawn animation)
+    groupObject.scale.set (0, 0, 0);
+    var target = new THREE.Vector3(1, 1, 1); // create on init
+    createjs.Tween.get (groupObject.scale).to (target, 400);
+    //
 
     return collider;
   }

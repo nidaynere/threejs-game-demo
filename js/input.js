@@ -46,18 +46,12 @@ class Input {
         
 	        const intersects = raycaster.intersectObjects( Input.TargetObjects );
 
-	        for ( let i = 0; i < intersects.length; i ++ ) {
-                Input.CurrentTargets [i] = intersects[i].object;
-		        //intersects[ i ].object.material.color.set( 0xff0000 );
-            }
-            
-            if (intersects.length > 0)
+	        if ( intersects.length > 0) {
+                Input.CurrentTargets [0] = intersects[0].object;
+                Input.CurrentTargets[0].ondragstart();
                 Input.IsDragging = true;
-
-            var length =  Input.CurrentTargets.length;
-            for ( let i = 0; i < length; i ++ ) {
-                 Input.CurrentTargets[ i ].ondragstart();
-            }    
+                //intersects[ i ].object.material.color.set( 0xff0000 );
+            }   
         }
 
         function OnMouseMove (event) {

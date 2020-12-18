@@ -19,7 +19,7 @@ class Scene extends PIXI.Container {
     Scene.Input = new Input (this.camera);
   }
   buildLevel(){
-    this.level = new Level();
+    this.level = new Level(this);
   }
   buildHud(){
     this.hud = new Hud();

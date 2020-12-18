@@ -1,10 +1,10 @@
 class Level {
-  constructor() {
+  constructor(scene) {
     this.textureLoader = new THREE.TextureLoader();
     this.modelLoader = new THREE.FBXLoader();
     this.clock = new THREE.Clock();
     this.deltaTime = this.clock.getDelta();
-
+    this.scene = scene;
     this.init();
   }
   init() {
@@ -210,10 +210,14 @@ class Level {
 
                 currentLevel.deSpawnObject (match);
                 currentLevel.spawnObject (policeCar);
+
+                currentLevel.scene.hud.showEndGame ();
             } else {
               // tween the scale increase.
               var target = new THREE.Vector3(match.scale.x *2, match.scale.y*2, match.scale.z*2); // create on init
               createjs.Tween.get (match.scale).to (target, 400);
+
+              currentLevel.scene.hud.hideTutorial ();
               //
             }
         }

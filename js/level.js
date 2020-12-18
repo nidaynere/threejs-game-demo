@@ -161,7 +161,7 @@ class Level {
     var groupObject = new THREE.Group();
     groupObject.obj = obj; // assign our spawn object to group object.
 
-    // THANK YOU FOR GIVING A CUTTED CAR :D
+    // THANK YOU FOR GIVING US A CUTTED CAR :D
     // HALF CAR => FULL CAR
     var mesh = [];
     mesh.push (this[obj.mesh].clone ());
@@ -204,7 +204,7 @@ class Level {
         obj.id != x.obj.id &&
         obj.mergeStep == x.obj.mergeStep &&
         (obj.color == x.obj.color || obj.mergeStep == 1) &&
-        groupObject.position.distanceTo (x.position) <= 2); // [KI] => 2 can be optional
+        groupObject.position.distanceTo (x.position) <= 2); // => 2 can be optional
 
         if (match != null)
         {
@@ -275,7 +275,7 @@ class Level {
 
     // tween the group scale. (spawn animation)
     groupObject.scale.set (0, 0, 0);
-    var target = new THREE.Vector3(1, 1, 1); // create on init
+    var target = new THREE.Vector3(1, 1, 1);
     createjs.Tween.get (groupObject.scale).to (target, 400);
     //
 

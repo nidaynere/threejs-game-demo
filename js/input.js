@@ -1,6 +1,5 @@
 /// I used static variables which is not necessary here.
 /// You know why? Because I had no idea. I never used JavaScript like this. 
-/// I was a happy man when I was generating CSS with JS.
 class Input {
     RefreshDragControls (objs) {
         Input.TargetObjects = objs;
@@ -10,6 +9,7 @@ class Input {
         Input.TargetDraggingZone = obj;
     }
 
+    /// raycast to the dragging zone for Input.TargetObjects on Input.TargetDraggingZone.
     RaycastToDraggingZone (point) {
         const raycaster = new THREE.Raycaster();
         raycaster.setFromCamera( point, Input.Camera );
@@ -17,7 +17,7 @@ class Input {
         const intersect = raycaster.intersectObject( Input.TargetDraggingZone );
 
         if (intersect.length> 0){
-            return intersect [0].point;
+            return intersect [0].point; // only the first one.
         }
 
         return null;
@@ -38,11 +38,8 @@ class Input {
         function OnMouseDown (event) {
             Input.CurrentTargets = [];
 
-            GetMousePosition (event); // update the last one.
-            // update the picking ray with the camera and mouse position
-
+            GetMousePosition (event);
             raycaster.setFromCamera( mouse, Input.Camera );
-            // calculate objects intersecting the picking ray
         
 	        const intersects = raycaster.intersectObjects( Input.TargetObjects );
 
@@ -50,7 +47,6 @@ class Input {
                 Input.CurrentTargets [0] = intersects[0].object;
                 Input.CurrentTargets[0].ondragstart();
                 Input.IsDragging = true;
-                //intersects[ i ].object.material.color.set( 0xff0000 );
             }   
         }
 

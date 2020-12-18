@@ -83,9 +83,8 @@ class Level {
   addInteractables(){
     Level.spawneds = [];
   
-    var carScale = 0.0015;
+    var carScale = 0.0008;
     var scaler = {x:carScale, y:carScale, z:carScale};
-    var scalerX2 = {x:carScale*2, y:carScale*2, z:carScale*2};
     // all interactables. they are also draggable
     var list = [
       { 
@@ -93,33 +92,40 @@ class Level {
         color: "blue", 
         mesh: "carBlue",
         material: new THREE.MeshBasicMaterial( {map: this.textures[1]}),
-        initialposition: { x: 0, y:2, z:2 } , 
+        initialposition: { x: -1.58, y:1, z:0.3 } , 
         initialscale: scaler,
         initialrotation: {x: 0, y: 90, z: 0},
-        mergeStep: 0,
-        instantiated: null // SPAWNED MESH (cloned in this case :)
+        mergeStep: 0
       },      
       { 
         id: "bluecar2", 
         color: "blue", 
         mesh: "carBlue",
         material: new THREE.MeshBasicMaterial( {map: this.textures[1]}),
-        initialposition: { x:4, y:2, z:2 } , 
+        initialposition: { x: 1.58, y:1, z:4.4 } , 
         initialscale: scaler, 
-        initialrotation: {x: 0, y: 90, z: 0},
-        mergeStep: 0,
-        instantiated: null // SPAWNED MESH (cloned in this case :)
+        initialrotation: {x: 0, y: 180, z: 0},
+        mergeStep: 0
       },
       { 
         id: "redcar1", 
         color: "red", 
         mesh: "carRed",
         material: new THREE.MeshBasicMaterial( {map: this.textures[2]}),
-        initialposition: { x: 1, y:1, z:0 } , 
-        initialscale: scalerX2, 
+        initialposition: { x: 0.7, y:1, z:2.1 } , 
+        initialscale: scaler, 
         initialrotation: {x: 0, y: 90, z: 0},
-        mergeStep: 1,
-        instantiated: null // SPAWNED MESH (cloned in this case :)
+        mergeStep: 0
+      },
+      { 
+        id: "redcar2", 
+        color: "red", 
+        mesh: "carRed",
+        material: new THREE.MeshBasicMaterial( {map: this.textures[2]}),
+        initialposition: { x: -1.25, y:0, z:1.7 } , 
+        initialscale: scaler, 
+        initialrotation: {x: 0, y: 90, z: 0},
+        mergeStep: 0
       }
     ]
 
@@ -155,16 +161,29 @@ class Level {
     var groupObject = new THREE.Group();
     groupObject.obj = obj; // assign our spawn object to group object.
 
-    var mesh = this[obj.mesh].clone ();
-    obj.instantiated = mesh;
-    
-    mesh.scale.set(obj.initialscale.x,obj.initialscale.y,obj.initialscale.z);
-    this.loadmaterial (mesh, obj.material);
+    // THANK YOU FOR GIVING A CUTTED CAR :D
+    // HALF CAR => FULL CAR
+    var mesh = [];
+    mesh.push (this[obj.mesh].clone ());
+    mesh.push (this[obj.mesh].clone ());
 
-    groupObject.add (mesh);
+    for (let i=0; i<2; i++)
+    {
+      mesh[i].scale.set(obj.initialscale.x,obj.initialscale.y,obj.initialscale.z);
+      this.loadmaterial (mesh[i], obj.material);
+      groupObject.add (mesh[i]);
+    }
+
+        // set mesh [0] rotation
+    if (mesh.length > 1) {
+          // set transform.
+          mesh[1].applyMatrix(new THREE.Matrix4().makeScale(-1, 1, 1));
+        //
+    }
+    // HALFCAR TO FULLCAR ENDS.
 
     // add collider.
-    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    const geometry = new THREE.BoxGeometry( 0.5, 0.5, 0.5 );
     const material = new THREE.MeshBasicMaterial( {color: 0xffffff} );
     var collider = new THREE.Mesh( geometry, material );
     collider.visible = false;
@@ -202,7 +221,7 @@ class Level {
                   mesh: "carPolice",
                   material: new THREE.MeshBasicMaterial( {map: currentLevel.textures[3]}),
                   initialposition: { x: match.position.x, y : match.position.y, z : match.position.z } , 
-                  initialscale: { x: 0.01, y: 0.01, z: 0.01 }, 
+                  initialscale: { x: 0.005, y: 0.005, z: 0.005 }, 
                   initialrotation: {x: 0, y: 90, z: 0},
                   mergeStep: 1,
                   instantiated: null
@@ -227,7 +246,15 @@ class Level {
       var position = Scene.Input.RaycastToDraggingZone (point);
       if (position != null)
       {
-          groupObject.position.set (position.x, position.y + 1, position.z);
+          // VERY COMPLEX FAKE GRID SYSTEM 
+          // calculated the dragging zone. it has 10m length. 
+          // 20 slots on the visual.
+          position.x = position.x - (position.x % 0.5) + 0.25;
+          position.z = position.z - (position.z % 0.5) + 0.25;
+          // VERY COMPLEX FAKE GRID SYSTEM ENDs.
+          
+          //assign the new position
+          groupObject.position.set (position.x, position.y, position.z);
       }
     }
     //

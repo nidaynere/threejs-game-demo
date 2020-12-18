@@ -14,7 +14,6 @@ class Scene extends PIXI.Container {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.update();
-
     /// create input module.
     Scene.Input = new Input (this.camera);
   }

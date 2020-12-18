@@ -83,8 +83,9 @@ class Level {
   addInteractables(){
     Level.spawneds = [];
   
-    var carScale = 0.001;
+    var carScale = 0.0015;
     var scaler = {x:carScale, y:carScale, z:carScale};
+    var scalerX2 = {x:carScale*2, y:carScale*2, z:carScale*2};
     // all interactables. they are also draggable
     var list = [
       { 
@@ -115,9 +116,9 @@ class Level {
         mesh: "carRed",
         material: new THREE.MeshBasicMaterial( {map: this.textures[2]}),
         initialposition: { x: 1, y:1, z:0 } , 
-        initialscale: scaler, 
+        initialscale: scalerX2, 
         initialrotation: {x: 0, y: 90, z: 0},
-        mergeStep: 0,
+        mergeStep: 1,
         instantiated: null // SPAWNED MESH (cloned in this case :)
       }
     ]
@@ -130,6 +131,25 @@ class Level {
 
     Scene.Input.RefreshDragControls (Level.colliders);
   }
+
+  deSpawnObject (match) {
+    // destroy the match from the scene.
+    scene.scene3D.remove (match);
+    
+    var index = Level.spawneds.findIndex (x=>x.obj.id == match.obj.id);
+    if (index > -1){
+      Level.spawneds.splice (index, 1);
+    }
+
+    // remove from colliders.
+    index = Level.colliders.findIndex (x=> x == match.collider);
+    if (index > -1){
+      Level.colliders.splice (index, 1);
+      
+      // collider list updated. update input drag controls.
+      Scene.Input.RefreshDragControls (Level.colliders);
+    }
+ }
 
   spawnObject (obj) {
     var groupObject = new THREE.Group();
@@ -150,6 +170,9 @@ class Level {
     collider.visible = false;
     //
 
+    /// we will use 'this' in events.
+    var currentLevel = this;
+
     // collider events.
     collider.ondragstart = function() { 
       console.log( "Drag started => " + obj.id ); 
@@ -157,31 +180,41 @@ class Level {
 
     collider.ondragend = function() { 
       console.log( "Drag end => " + obj.id ); 
-
       // find possible match?
       var match = Level.spawneds.find (x => 
         obj.id != x.obj.id &&
         obj.mergeStep == x.obj.mergeStep &&
         (obj.color == x.obj.color || obj.mergeStep == 1) &&
-        groupObject.position.distanceTo (x.position) <= 3); // [KNOWNISSUE] => 1 can be optional
+        groupObject.position.distanceTo (x.position) <= 2); // [KI] => 2 can be optional
 
         if (match != null)
         {
-            // destroy the match from the scene.
-            scene.scene3D.remove (match);
-            
-            var index = Level.spawneds.findIndex (x=>x.obj.id == match.obj.id);
-            if (index > -1){
-              Level.spawneds.splice (index, 1);
-            }
+            console.log ("Match found");
+            currentLevel.deSpawnObject (groupObject);
+            match.obj.mergeStep++; // target is now scaled up.
 
-            // remove from colliders.
-            index = Level.colliders.findIndex (x=> x == match.collider);
-            if (index > -1){
-              Level.colliders.splice (index, 1);
-              
-              // collider list updated. update input drag controls.
-              Scene.Input.RefreshDragControls (Level.colliders);
+            if (match.obj.mergeStep > 1) {
+               // police car!
+               console.log ("policecar");
+               var policeCar = { 
+                  id: "policecar", 
+                  color: "police", 
+                  mesh: "carPolice",
+                  material: new THREE.MeshBasicMaterial( {map: currentLevel.textures[3]}),
+                  initialposition: { x: match.position.x, y : match.position.y, z : match.position.z } , 
+                  initialscale: { x: 0.01, y: 0.01, z: 0.01 }, 
+                  initialrotation: {x: 0, y: 90, z: 0},
+                  mergeStep: 1,
+                  instantiated: null
+                };
+
+                currentLevel.deSpawnObject (match);
+                currentLevel.spawnObject (policeCar);
+            } else {
+              // tween the scale increase.
+              var target = new THREE.Vector3(match.scale.x *2, match.scale.y*2, match.scale.z*2); // create on init
+              createjs.Tween.get (match.scale).to (target, 400);
+              //
             }
         }
     }

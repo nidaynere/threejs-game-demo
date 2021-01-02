@@ -161,8 +161,7 @@ class Level {
     var groupObject = new THREE.Group();
     groupObject.obj = obj; // assign our spawn object to group object.
 
-    // THANK YOU FOR GIVING US A CUTTED CAR :D
-    // HALF CAR => FULL CAR
+    // WE HAVE ONE SIDED CAR FBX => FULL CAR
     var mesh = [];
     mesh.push (this[obj.mesh].clone ());
     mesh.push (this[obj.mesh].clone ());
@@ -174,7 +173,7 @@ class Level {
       groupObject.add (mesh[i]);
     }
 
-        // set mesh [0] rotation
+    // set mesh [0] rotation
     if (mesh.length > 1) {
           // set transform.
           mesh[1].applyMatrix(new THREE.Matrix4().makeScale(-1, 1, 1));
@@ -204,7 +203,7 @@ class Level {
         obj.id != x.obj.id &&
         obj.mergeStep == x.obj.mergeStep &&
         (obj.color == x.obj.color || obj.mergeStep == 1) &&
-        groupObject.position.distanceTo (x.position) <= 2); // => 2 can be optional
+        groupObject.position.distanceTo (x.position) <= 1); // => 1 can be optional
 
         if (match != null)
         {

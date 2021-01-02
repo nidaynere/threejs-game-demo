@@ -80,6 +80,7 @@ class Level {
     Scene.Input.SetDraggingZone (collider);
   }
 
+  /// ADD INTERACTBLES, builds the scene with the cars.
   addInteractables(){
     Level.spawneds = [];
   

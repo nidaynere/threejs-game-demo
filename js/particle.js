@@ -1,5 +1,4 @@
 //// DIRECTLY TAKEN FROM HERE => http://jsfiddle.net/wo8L493m/
-//// I HAVE NO IDEA ABOUT PARTICLES IN THREE.JS or PIXI.
 
 (function () {
     // globals
